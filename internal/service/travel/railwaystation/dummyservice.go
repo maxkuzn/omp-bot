@@ -11,12 +11,12 @@ type stationInfo struct {
 	Station travel.RailwayStation
 }
 
-type DummyRailwayStationService struct {
+type DummyService struct {
 	stations []stationInfo
 	nextID   uint64
 }
 
-func NewDummyRailwayStationService() *DummyRailwayStationService {
+func NewDummyService() *DummyService {
 	info := stationInfo{
 		Deleted: false,
 		Station: travel.RailwayStation{
@@ -26,13 +26,13 @@ func NewDummyRailwayStationService() *DummyRailwayStationService {
 		},
 	}
 	stations := []stationInfo{info}
-	return &DummyRailwayStationService{
+	return &DummyService{
 		stations: stations,
 		nextID:   1,
 	}
 }
 
-func (s *DummyRailwayStationService) Describe(stationID uint64) (station *travel.RailwayStation, err error) {
+func (s *DummyService) Describe(stationID uint64) (station *travel.RailwayStation, err error) {
 	if stationID >= uint64(len(s.stations)) {
 		err = fmt.Errorf("Station with id %d doesn't exists", stationID)
 		return
@@ -45,7 +45,7 @@ func (s *DummyRailwayStationService) Describe(stationID uint64) (station *travel
 	return
 }
 
-func (s *DummyRailwayStationService) List(cursor uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
+func (s *DummyService) List(cursor uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
 	currIdx := int(cursor)
 	for len(stationsArr) < int(limit) && currIdx < len(s.stations) {
 		if !s.stations[currIdx].Deleted {
@@ -56,7 +56,7 @@ func (s *DummyRailwayStationService) List(cursor uint64, limit uint64) (stations
 	return
 }
 
-func (s *DummyRailwayStationService) Create(station travel.RailwayStation) (uint64, error) {
+func (s *DummyService) Create(station travel.RailwayStation) (uint64, error) {
 	station.ID = s.nextID
 	s.nextID++
 
@@ -69,11 +69,11 @@ func (s *DummyRailwayStationService) Create(station travel.RailwayStation) (uint
 	return station.ID, nil
 }
 
-func (s *DummyRailwayStationService) Update(stationID uint64, station travel.RailwayStation) error {
+func (s *DummyService) Update(stationID uint64, station travel.RailwayStation) error {
 	panic("Not implemented")
 }
 
-func (s *DummyRailwayStationService) Remove(stationID uint64) (bool, error) {
+func (s *DummyService) Remove(stationID uint64) (bool, error) {
 	if stationID >= uint64(len(s.stations)) {
 		return false, fmt.Errorf("Station with id %d doesn't exists", stationID)
 	}

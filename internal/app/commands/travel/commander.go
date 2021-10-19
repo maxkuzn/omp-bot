@@ -18,12 +18,12 @@ type TravelCommander struct {
 	railwayStationCommander Commander
 }
 
-func NewTravelCommander(
+func NewCommander(
 	bot *tgbotapi.BotAPI,
 ) *TravelCommander {
 	return &TravelCommander{
 		bot:                     bot,
-		railwayStationCommander: railwaystation.NewRailwayStationCommander(bot),
+		railwayStationCommander: railwaystation.NewCommander(bot),
 	}
 }
 

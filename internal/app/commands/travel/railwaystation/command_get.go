@@ -9,7 +9,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func (c *RailwayStationCommander) Get(inputMessage *tgbotapi.Message) {
+func (c *Commander) Get(inputMessage *tgbotapi.Message) {
 	reply := func(text string) {
 		msg := tgbotapi.NewMessage(
 			inputMessage.Chat.ID,
@@ -18,7 +18,7 @@ func (c *RailwayStationCommander) Get(inputMessage *tgbotapi.Message) {
 
 		_, err := c.bot.Send(msg)
 		if err != nil {
-			log.Printf("RailwayStationCommander.Get: error replying reply message to chat: %v", err)
+			log.Printf("railwaystation.Commander.Get: error replying reply message to chat: %v", err)
 		}
 	}
 	usage := "Usage of get command:\n" +

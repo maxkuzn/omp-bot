@@ -63,7 +63,7 @@ func NewRouter(
 		// delivery
 		// recommendation
 		// travel
-		travelCommander: travel.NewTravelCommander(bot),
+		travelCommander: travel.NewCommander(bot),
 		// loyalty
 		// bank
 		// subscription

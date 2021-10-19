@@ -8,31 +8,30 @@ import (
 	"github.com/ozonmp/omp-bot/internal/service/travel/railwaystation"
 )
 
-type RailwayStationCommander struct {
+type Commander struct {
 	bot     *tgbotapi.BotAPI
-	service railwaystation.RailwayStationService
+	service railwaystation.Service
 }
 
-func NewRailwayStationCommander(bot *tgbotapi.BotAPI) *RailwayStationCommander {
-	railwayStationService := railwaystation.NewDummyRailwayStationService()
-	return &RailwayStationCommander{
+func NewCommander(bot *tgbotapi.BotAPI) *Commander {
+	return &Commander{
 		bot:     bot,
-		service: railwayStationService,
+		service: railwaystation.NewDummyService(),
 	}
 }
 
-func (c *RailwayStationCommander) HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
+func (c *Commander) HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
 	switch callbackPath.CallbackName {
 	/*
 		case "list":
 			c.CallbackList(callback, callbackPath)
 	*/
 	default:
-		log.Printf("RailwayStationCommander.HandleCallback: unknown callback name: %s", callbackPath.CallbackName)
+		log.Printf("railwaystation.Commander.HandleCallback: unknown callback name: %s", callbackPath.CallbackName)
 	}
 }
 
-func (c *RailwayStationCommander) HandleCommand(msg *tgbotapi.Message, commandPath path.CommandPath) {
+func (c *Commander) HandleCommand(msg *tgbotapi.Message, commandPath path.CommandPath) {
 	switch commandPath.CommandName {
 	case "help":
 		c.Help(msg)

@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func (c *RailwayStationCommander) Default(inputMessage *tgbotapi.Message) {
+func (c *Commander) Default(inputMessage *tgbotapi.Message) {
 	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
 
 	msg := tgbotapi.NewMessage(
@@ -17,6 +17,6 @@ func (c *RailwayStationCommander) Default(inputMessage *tgbotapi.Message) {
 
 	_, err := c.bot.Send(msg)
 	if err != nil {
-		log.Printf("RailwayStationCommander.Default: error sending reply message to chat: %v", err)
+		log.Printf("railwaystation.Commander.Default: error sending reply message to chat: %v", err)
 	}
 }
