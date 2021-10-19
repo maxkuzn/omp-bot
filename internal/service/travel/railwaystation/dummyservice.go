@@ -7,7 +7,6 @@ import (
 )
 
 type stationInfo struct {
-	ID      uint64
 	Deleted bool
 	Station travel.RailwayStation
 }
@@ -19,9 +18,9 @@ type DummyRailwayStationService struct {
 
 func NewDummyRailwayStationService() *DummyRailwayStationService {
 	info := stationInfo{
-		ID:      0,
 		Deleted: false,
 		Station: travel.RailwayStation{
+			ID:       0,
 			Name:     "Example",
 			Location: "Some location",
 		},
@@ -47,21 +46,27 @@ func (s *DummyRailwayStationService) Describe(stationID uint64) (station *travel
 }
 
 func (s *DummyRailwayStationService) List(cursor uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
-
-	panic("Not implemented")
+	currIdx := int(cursor)
+	for len(stationsArr) < int(limit) && currIdx < len(s.stations) {
+		if !s.stations[currIdx].Deleted {
+			stationsArr = append(stationsArr, s.stations[currIdx].Station)
+		}
+		currIdx++
+	}
+	return
 }
 
 func (s *DummyRailwayStationService) Create(station travel.RailwayStation) (uint64, error) {
 	station.ID = s.nextID
+	s.nextID++
+
 	info := stationInfo{
-		ID:      s.nextID,
 		Deleted: false,
 		Station: station,
 	}
-	s.nextID++
 
 	s.stations = append(s.stations, info)
-	return info.ID, nil
+	return station.ID, nil
 }
 
 func (s *DummyRailwayStationService) Update(stationID uint64, station travel.RailwayStation) error {
@@ -69,5 +74,12 @@ func (s *DummyRailwayStationService) Update(stationID uint64, station travel.Rai
 }
 
 func (s *DummyRailwayStationService) Remove(stationID uint64) (bool, error) {
-	panic("Not implemented")
+	if stationID >= uint64(len(s.stations)) {
+		return false, fmt.Errorf("Station with id %d doesn't exists", stationID)
+	}
+	if s.stations[stationID].Deleted {
+		return false, fmt.Errorf("Station with id %d was already deleted", stationID)
+	}
+	s.stations[stationID].Deleted = true
+	return true, nil
 }

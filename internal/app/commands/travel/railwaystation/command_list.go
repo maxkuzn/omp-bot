@@ -1,21 +1,36 @@
 package railwaystation
 
 import (
+	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func (c *RailwayStationCommander) List(inputMessage *tgbotapi.Message) {
+	reply := func(text string) {
+		msg := tgbotapi.NewMessage(
+			inputMessage.Chat.ID,
+			text,
+		)
+
+		_, err := c.bot.Send(msg)
+		if err != nil {
+			log.Printf("RailwayStationCommander.List: error replying reply message to chat: %v", err)
+		}
+	}
+
 	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
 
-	msg := tgbotapi.NewMessage(
-		inputMessage.Chat.ID,
-		"Here should be a list command",
-	)
-
-	_, err := c.bot.Send(msg)
+	stations, err := c.service.List(uint64(0), 100)
 	if err != nil {
-		log.Printf("RailwayStationCommander.List: error sending reply message to chat: %v", err)
+		reply(fmt.Sprintf("An error occured: %s", err))
+		return
 	}
+
+	text := "List of stations:\n"
+	for _, s := range stations {
+		text += fmt.Sprintln(s)
+	}
+	reply(text)
 }
