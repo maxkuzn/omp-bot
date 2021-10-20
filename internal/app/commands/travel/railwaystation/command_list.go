@@ -8,23 +8,11 @@ import (
 )
 
 func (c *Commander) List(inputMessage *tgbotapi.Message) {
-	reply := func(text string) {
-		msg := tgbotapi.NewMessage(
-			inputMessage.Chat.ID,
-			text,
-		)
-
-		_, err := c.bot.Send(msg)
-		if err != nil {
-			log.Printf("railwaystation.Commander.List: error replying reply message to chat: %v", err)
-		}
-	}
-
 	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
 
 	stations, err := c.service.List(uint64(0), 100)
 	if err != nil {
-		reply(fmt.Sprintf("An error occured: %s", err))
+		reply(c.bot, inputMessage.Chat.ID, fmt.Sprintf("An error occured: %s", err))
 		return
 	}
 
@@ -32,5 +20,5 @@ func (c *Commander) List(inputMessage *tgbotapi.Message) {
 	for _, s := range stations {
 		text += fmt.Sprintln(s)
 	}
-	reply(text)
+	reply(c.bot, inputMessage.Chat.ID, text)
 }

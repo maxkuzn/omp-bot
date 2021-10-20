@@ -17,13 +17,5 @@ func (c *Commander) Help(inputMessage *tgbotapi.Message) {
 	outputText += "/edit__travel__railway_station - edit an info about railway station\n"
 	outputText += "/delete__travel__railway_station - delete a railway station\n"
 
-	msg := tgbotapi.NewMessage(
-		inputMessage.Chat.ID,
-		outputText,
-	)
-
-	_, err := c.bot.Send(msg)
-	if err != nil {
-		log.Printf("railwaystation.Commander.Help: error sending reply message to chat: %v", err)
-	}
+	reply(c.bot, inputMessage.Chat.ID, outputText)
 }

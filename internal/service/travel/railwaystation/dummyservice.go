@@ -70,7 +70,14 @@ func (s *DummyService) Create(station travel.RailwayStation) (uint64, error) {
 }
 
 func (s *DummyService) Update(stationID uint64, station travel.RailwayStation) error {
-	panic("Not implemented")
+	if stationID >= uint64(len(s.stations)) {
+		return fmt.Errorf("Station with id %d doesn't exists", stationID)
+	}
+	if s.stations[stationID].Deleted {
+		return fmt.Errorf("Station with id %d was already deleted", stationID)
+	}
+	s.stations[stationID].Station = station
+	return nil
 }
 
 func (s *DummyService) Remove(stationID uint64) (bool, error) {
