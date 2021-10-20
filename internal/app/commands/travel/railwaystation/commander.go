@@ -21,11 +21,10 @@ func NewCommander(bot *tgbotapi.BotAPI) *Commander {
 }
 
 func (c *Commander) HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
+	log.Printf("callbackPath.CallbackName: %v", callbackPath.CallbackName)
 	switch callbackPath.CallbackName {
-	/*
-		case "list":
-			c.CallbackList(callback, callbackPath)
-	*/
+	case "list":
+		c.CallbackList(callback, callbackPath)
 	default:
 		log.Printf("railwaystation.Commander.HandleCallback: unknown callback name: %s", callbackPath.CallbackName)
 	}
