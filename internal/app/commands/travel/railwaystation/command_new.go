@@ -3,7 +3,6 @@ package railwaystation
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -11,8 +10,7 @@ import (
 func (c *Commander) New(inputMessage *tgbotapi.Message) {
 	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
 
-	fields := strings.Fields(inputMessage.Text)
-	station, err := parseRailwayStation(fields[1:], false)
+	station, err := parseRailwayStation(inputMessage.Text, false)
 	if err != nil {
 		reply(c.bot, inputMessage.Chat.ID, fmt.Sprintf("Error parsing arguments: %v", err))
 		return

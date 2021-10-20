@@ -1,6 +1,7 @@
 package railwaystation
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"log"
@@ -22,7 +23,32 @@ func reply(bot *tgbotapi.BotAPI, chatID int64, text string) {
 	}
 }
 
-func parseRailwayStation(args []string, withID bool) (station travel.RailwayStation, err error) {
+func replaceQuotes(text string) string {
+	text = strings.ReplaceAll(text, "“", "\"")
+	text = strings.ReplaceAll(text, "”", "\"")
+	text = strings.ReplaceAll(text, "‘", "'")
+	text = strings.ReplaceAll(text, "’", "'")
+	return text
+}
+
+func splitArgs(text string) ([]string, error) {
+	text = replaceQuotes(text)
+
+	r := csv.NewReader(strings.NewReader(text))
+	r.Comma = ' '
+	args, err := r.Read()
+	if err != nil {
+		return nil, err
+	}
+	return args, nil
+}
+
+func parseRailwayStation(text string, withID bool) (station travel.RailwayStation, err error) {
+	args, err := splitArgs(text)
+	if err != nil {
+		return
+	}
+
 	fs := flag.NewFlagSet("parse", flag.ContinueOnError)
 	builder := strings.Builder{}
 	fs.SetOutput(&builder)
@@ -33,10 +59,11 @@ func parseRailwayStation(args []string, withID bool) (station travel.RailwayStat
 		fs.Uint64Var(&station.ID, "ID", 0, "Station ID")
 	}
 
-	err = fs.Parse(args)
+	err = fs.Parse(args[1:])
 	if err != nil {
 		return
 	}
+	log.Println(station)
 
 	if !((withID && fs.NFlag() == 3) || (!withID && fs.NFlag() == 2)) {
 		fs.PrintDefaults()
