@@ -2,6 +2,8 @@ package railwaystation
 
 import (
 	"encoding/csv"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -32,8 +34,6 @@ func replaceQuotes(text string) string {
 }
 
 func splitArgs(text string) ([]string, error) {
-	text = replaceQuotes(text)
-
 	r := csv.NewReader(strings.NewReader(text))
 	r.Comma = ' '
 	args, err := r.Read()
@@ -43,7 +43,7 @@ func splitArgs(text string) ([]string, error) {
 	return args, nil
 }
 
-func parseRailwayStation(text string, withID bool) (station travel.RailwayStation, err error) {
+func parseRailwayStationArguments(text string, withID bool) (station travel.RailwayStation, err error) {
 	args, err := splitArgs(text)
 	if err != nil {
 		return
@@ -71,4 +71,27 @@ func parseRailwayStation(text string, withID bool) (station travel.RailwayStatio
 		return
 	}
 	return
+}
+
+func parseRailwayStationJSON(text string, withID bool) (station travel.RailwayStation, err error) {
+	d := json.NewDecoder(strings.NewReader(text))
+	d.DisallowUnknownFields()
+	err = json.Unmarshal([]byte(text), &station)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func parseRailwayStation(text string, withID bool) (station travel.RailwayStation, err error) {
+	text = replaceQuotes(text)
+	spaceIdx := strings.IndexByte(text, ' ')
+	if spaceIdx == -1 {
+		err = errors.New("Invalid format")
+		return
+	}
+	if json.Valid([]byte(text[spaceIdx+1:])) {
+		return parseRailwayStationJSON(text[spaceIdx+1:], withID)
+	}
+	return parseRailwayStationArguments(text, withID)
 }
