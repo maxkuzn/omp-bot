@@ -80,6 +80,18 @@ func parseRailwayStationJSON(text string, withID bool) (station travel.RailwaySt
 	if err != nil {
 		return
 	}
+	if len(station.Name) == 0 {
+		err = errors.New("you should specify non-zero name")
+		return
+	}
+	if len(station.Location) == 0 {
+		err = errors.New("you should specify non-zero location")
+		return
+	}
+	if withID && station.ID == 0 {
+		err = errors.New("you should specify valid id")
+		return
+	}
 	return
 }
 
@@ -87,7 +99,7 @@ func parseRailwayStation(text string, withID bool) (station travel.RailwayStatio
 	text = replaceQuotes(text)
 	spaceIdx := strings.IndexByte(text, ' ')
 	if spaceIdx == -1 {
-		err = errors.New("Invalid format")
+		err = errors.New("invalid format")
 		return
 	}
 	if json.Valid([]byte(text[spaceIdx+1:])) {

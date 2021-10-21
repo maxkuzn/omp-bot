@@ -21,35 +21,39 @@ func NewDummyService() *DummyService {
 	stations := []stationInfo{}
 	s := &DummyService{
 		stations: stations,
-		nextID:   0,
+		nextID:   1, // Reserve id=0 for invalid records
 	}
 	for i := 0; i < 15; i++ {
 		s.Create(travel.RailwayStation{
-			Name:     "Example " + strconv.Itoa(i),
-			Location: "Some location " + strconv.Itoa(i),
+			Name:     "Example " + strconv.Itoa(i+1),
+			Location: "Some location " + strconv.Itoa(i+1),
 		})
 	}
 	return s
 }
 
 func (s *DummyService) Describe(stationID uint64) (station *travel.RailwayStation, err error) {
-	if stationID >= uint64(len(s.stations)) {
-		err = fmt.Errorf("Station with id %d doesn't exists", stationID)
+	if stationID == 0 || stationID >= uint64(len(s.stations)) {
+		err = fmt.Errorf("station with id %d doesn't exists", stationID)
 		return
 	}
-	if s.stations[stationID].Deleted {
-		err = fmt.Errorf("Station with id %d was deleted", stationID)
+	stationIdx := stationID - 1
+	if s.stations[stationIdx].Deleted {
+		err = fmt.Errorf("station with id %d was deleted", stationID)
 		return
 	}
-	station = &s.stations[stationID].Station
+	station = &s.stations[stationIdx].Station
 	return
 }
 
 func (s *DummyService) List(cursor uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
 	if cursor > uint64(len(s.stations)) {
-		cursor = uint64(len(s.stations))
+		cursor = uint64(len(s.stations)) + 1
 	}
-	currIdx := int(cursor)
+	currIdx := int(cursor) - 1
+	if currIdx < 0 {
+		currIdx = 0
+	}
 	for len(stationsArr) < int(limit) && currIdx < len(s.stations) {
 		if !s.stations[currIdx].Deleted {
 			stationsArr = append(stationsArr, s.stations[currIdx].Station)
@@ -60,10 +64,11 @@ func (s *DummyService) List(cursor uint64, limit uint64) (stationsArr []travel.R
 }
 
 func (s *DummyService) ListUntil(until uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
-	if until > uint64(len(s.stations)) {
-		until = uint64(len(s.stations))
+	untilIdx := int(until) - 1
+	if untilIdx > len(s.stations) {
+		untilIdx = len(s.stations)
 	}
-	currIdx := int(until) - 1
+	currIdx := untilIdx - 1
 	stationsArr = make([]travel.RailwayStation, limit)
 	currLen := 0
 	for currLen < int(limit) && currIdx >= 0 {
@@ -91,23 +96,25 @@ func (s *DummyService) Create(station travel.RailwayStation) (uint64, error) {
 }
 
 func (s *DummyService) Update(stationID uint64, station travel.RailwayStation) error {
-	if stationID >= uint64(len(s.stations)) {
+	if stationID == 0 || stationID >= uint64(len(s.stations)) {
 		return fmt.Errorf("Station with id %d doesn't exists", stationID)
 	}
-	if s.stations[stationID].Deleted {
+	stationIdx := stationID - 1
+	if s.stations[stationIdx].Deleted {
 		return fmt.Errorf("Station with id %d was already deleted", stationID)
 	}
-	s.stations[stationID].Station = station
+	s.stations[stationIdx].Station = station
 	return nil
 }
 
 func (s *DummyService) Remove(stationID uint64) (bool, error) {
-	if stationID >= uint64(len(s.stations)) {
+	if stationID == 0 || stationID >= uint64(len(s.stations)) {
 		return false, fmt.Errorf("Station with id %d doesn't exists", stationID)
 	}
-	if s.stations[stationID].Deleted {
+	stationIdx := stationID - 1
+	if s.stations[stationIdx].Deleted {
 		return false, fmt.Errorf("Station with id %d was already deleted", stationID)
 	}
-	s.stations[stationID].Deleted = true
+	s.stations[stationIdx].Deleted = true
 	return true, nil
 }

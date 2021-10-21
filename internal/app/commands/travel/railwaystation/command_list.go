@@ -57,8 +57,6 @@ func (c *Commander) List(inputMessage *tgbotapi.Message) {
 		CallbackData: string(serializedDataNext),
 	}
 
-	log.Printf("%q = %d", callbackPathPrev.String(), len(callbackPathPrev.String()))
-
 	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, text)
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
