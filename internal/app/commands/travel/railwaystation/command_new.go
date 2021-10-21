@@ -10,7 +10,7 @@ import (
 func (c *Commander) New(inputMessage *tgbotapi.Message) {
 	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
 
-	station, err := parseRailwayStation(inputMessage.Text, false)
+	station, err := parseRailwayStation(inputMessage.CommandArguments(), false)
 	if err != nil {
 		reply(c.bot, inputMessage.Chat.ID, fmt.Sprintf("Error parsing arguments: %v", err))
 		return

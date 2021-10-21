@@ -1,13 +1,14 @@
 package railwaystation
 
 import (
-	"encoding/csv"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"strings"
+	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/ozonmp/omp-bot/internal/model/travel"
@@ -33,21 +34,19 @@ func replaceQuotes(text string) string {
 	return text
 }
 
-func splitArgs(text string) ([]string, error) {
-	r := csv.NewReader(strings.NewReader(text))
-	r.Comma = ' '
-	args, err := r.Read()
-	if err != nil {
-		return nil, err
-	}
-	return args, nil
+func splitArgs(data string) []string {
+	quoted := false
+	args := strings.FieldsFunc(data, func(r rune) bool {
+		if r == '"' {
+			quoted = !quoted
+		}
+		return !quoted && unicode.IsSpace(r)
+	})
+	return args
 }
 
-func parseRailwayStationArguments(text string, withID bool) (station travel.RailwayStation, err error) {
-	args, err := splitArgs(text)
-	if err != nil {
-		return
-	}
+func parseRailwayStationArguments(data string, withID bool) (station travel.RailwayStation, err error) {
+	args := splitArgs(data)
 
 	fs := flag.NewFlagSet("parse", flag.ContinueOnError)
 	builder := strings.Builder{}
@@ -59,11 +58,10 @@ func parseRailwayStationArguments(text string, withID bool) (station travel.Rail
 		fs.Uint64Var(&station.ID, "ID", 0, "Station ID")
 	}
 
-	err = fs.Parse(args[1:])
+	err = fs.Parse(args)
 	if err != nil {
 		return
 	}
-	log.Println(station)
 
 	if !((withID && fs.NFlag() == 3) || (!withID && fs.NFlag() == 2)) {
 		fs.PrintDefaults()
@@ -73,10 +71,10 @@ func parseRailwayStationArguments(text string, withID bool) (station travel.Rail
 	return
 }
 
-func parseRailwayStationJSON(text string, withID bool) (station travel.RailwayStation, err error) {
-	d := json.NewDecoder(strings.NewReader(text))
+func parseRailwayStationJSON(data []byte, withID bool) (station travel.RailwayStation, err error) {
+	d := json.NewDecoder(bytes.NewReader(data))
 	d.DisallowUnknownFields()
-	err = json.Unmarshal([]byte(text), &station)
+	err = d.Decode(&station)
 	if err != nil {
 		return
 	}
@@ -95,15 +93,11 @@ func parseRailwayStationJSON(text string, withID bool) (station travel.RailwaySt
 	return
 }
 
-func parseRailwayStation(text string, withID bool) (station travel.RailwayStation, err error) {
-	text = replaceQuotes(text)
-	spaceIdx := strings.IndexByte(text, ' ')
-	if spaceIdx == -1 {
-		err = errors.New("invalid format")
-		return
+func parseRailwayStation(data string, withID bool) (station travel.RailwayStation, err error) {
+	data = replaceQuotes(data)
+	rawData := []byte(data)
+	if json.Valid(rawData) {
+		return parseRailwayStationJSON(rawData, withID)
 	}
-	if json.Valid([]byte(text[spaceIdx+1:])) {
-		return parseRailwayStationJSON(text[spaceIdx+1:], withID)
-	}
-	return parseRailwayStationArguments(text, withID)
+	return parseRailwayStationArguments(data, withID)
 }
