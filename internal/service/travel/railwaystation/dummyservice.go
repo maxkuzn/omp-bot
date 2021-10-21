@@ -2,6 +2,7 @@ package railwaystation
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ozonmp/omp-bot/internal/model/travel"
 )
@@ -17,19 +18,18 @@ type DummyService struct {
 }
 
 func NewDummyService() *DummyService {
-	info := stationInfo{
-		Deleted: false,
-		Station: travel.RailwayStation{
-			ID:       0,
-			Name:     "Example",
-			Location: "Some location",
-		},
-	}
-	stations := []stationInfo{info}
-	return &DummyService{
+	stations := []stationInfo{}
+	s := &DummyService{
 		stations: stations,
-		nextID:   1,
+		nextID:   0,
 	}
+	for i := 0; i < 15; i++ {
+		s.Create(travel.RailwayStation{
+			Name:     "Example " + strconv.Itoa(i),
+			Location: "Some location " + strconv.Itoa(i),
+		})
+	}
+	return s
 }
 
 func (s *DummyService) Describe(stationID uint64) (station *travel.RailwayStation, err error) {
@@ -46,6 +46,9 @@ func (s *DummyService) Describe(stationID uint64) (station *travel.RailwayStatio
 }
 
 func (s *DummyService) List(cursor uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
+	if cursor > uint64(len(s.stations)) {
+		cursor = uint64(len(s.stations))
+	}
 	currIdx := int(cursor)
 	for len(stationsArr) < int(limit) && currIdx < len(s.stations) {
 		if !s.stations[currIdx].Deleted {
@@ -53,6 +56,24 @@ func (s *DummyService) List(cursor uint64, limit uint64) (stationsArr []travel.R
 		}
 		currIdx++
 	}
+	return
+}
+
+func (s *DummyService) ListUntil(until uint64, limit uint64) (stationsArr []travel.RailwayStation, err error) {
+	if until > uint64(len(s.stations)) {
+		until = uint64(len(s.stations))
+	}
+	currIdx := int(until) - 1
+	stationsArr = make([]travel.RailwayStation, limit)
+	currLen := 0
+	for currLen < int(limit) && currIdx >= 0 {
+		if !s.stations[currIdx].Deleted {
+			stationsArr[int(limit)-currLen-1] = s.stations[currIdx].Station
+			currLen++
+		}
+		currIdx--
+	}
+	stationsArr = stationsArr[int(limit)-currLen:]
 	return
 }
 

@@ -29,25 +29,41 @@ func (c *Commander) List(inputMessage *tgbotapi.Message) {
 		text += fmt.Sprintln(s)
 	}
 
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, text)
-
-	serializedData, err := json.Marshal(CallbackListData{
-		LastID: stations[len(stations)-1].ID,
+	serializedDataPrev, err := json.Marshal(CallbackListData{
+		LastID: 0,
+		GoNext: false,
 	})
 	if err != nil {
 		panic(err)
 	}
-
-	callbackPath := path.CallbackPath{
+	callbackPathPrev := path.CallbackPath{
 		Domain:       "travel",
 		Subdomain:    "railway_station",
 		CallbackName: "list",
-		CallbackData: string(serializedData),
+		CallbackData: string(serializedDataPrev),
 	}
 
+	serializedDataNext, err := json.Marshal(CallbackListData{
+		LastID: stations[len(stations)-1].ID,
+		GoNext: true,
+	})
+	if err != nil {
+		panic(err)
+	}
+	callbackPathNext := path.CallbackPath{
+		Domain:       "travel",
+		Subdomain:    "railway_station",
+		CallbackName: "list",
+		CallbackData: string(serializedDataNext),
+	}
+
+	log.Printf("%q = %d", callbackPathPrev.String(), len(callbackPathPrev.String()))
+
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, text)
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Next page", callbackPath.String()),
+			tgbotapi.NewInlineKeyboardButtonData("Prev page", callbackPathPrev.String()),
+			tgbotapi.NewInlineKeyboardButtonData("Next page", callbackPathNext.String()),
 		),
 	)
 
